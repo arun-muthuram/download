@@ -63,15 +63,18 @@ module.exports = (uri, output, opts) => {
 		output = null;
 	}
 
-	opts = Object.assign({
-		encoding: null,
-		rejectUnauthorized: process.env.npm_config_strict_ssl !== 'false'
-	}, opts);
+	opts = {
+		responseType: 'buffer',
+		https: {
+			rejectUnauthorized: process.env.npm_config_strict_ssl !== 'false',
+		},
+		...opts
+	};
 
 	const stream = got.stream(uri, opts);
 
 	const promise = pEvent(stream, 'response').then(res => {
-		const encoding = opts.encoding === null ? 'buffer' : opts.encoding;
+		const encoding = opts.responseType === 'buffer' ? 'buffer' : opts.encoding;
 		return Promise.all([getStream(stream, {encoding}), res]);
 	}).then(result => {
 		const [data, res] = result;
